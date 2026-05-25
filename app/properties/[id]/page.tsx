@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { calculateMortgage, getPropertyStatus, mortgageInputsFrom, TARGET_DTI } from "@/lib/calculations";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/client";
+import { ensureProfile } from "@/lib/profile";
 import type { Profile, Property } from "@/lib/types";
 
 const generalPlaceholder =
@@ -39,7 +40,7 @@ export default function PropertyDetailPage() {
     async function load() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return router.replace("/login");
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", auth.user.id).single();
+      const profileData = await ensureProfile(supabase, auth.user);
       if (!profileData?.setup_complete) return router.replace("/setup");
       const { data: propertyData, error: propertyError } = await supabase
         .from("properties")

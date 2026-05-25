@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { LoadingState } from "@/components/loading-state";
 import { MoneyInput } from "@/components/money-input";
 import { PercentageInput } from "@/components/percentage-input";
+import { ensureProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 
@@ -45,16 +46,12 @@ export default function SetupPage() {
     async function load() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return router.replace("/login");
-      const { data, error: loadError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", auth.user.id)
-        .single();
-      if (loadError || !data) {
-        setError(loadError?.message ?? "Profile not found.");
-      } else {
+      try {
+        const data = await ensureProfile(supabase, auth.user);
         setProfileId(auth.user.id);
         setDraft(data as Profile);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Profile not found.");
       }
       setLoading(false);
     }

@@ -1,17 +1,16 @@
-export function normalizeUsername(username: string) {
-  return username.trim().toLowerCase();
+export function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
 }
 
-export function validateUsername(username: string) {
-  const normalized = normalizeUsername(username);
-  if (!normalized) return "Username is required.";
-  if (/\s/.test(normalized)) return "Username cannot contain spaces.";
-  if (!/^[a-z0-9._-]+$/.test(normalized)) {
-    return "Use lowercase letters, numbers, dots, dashes, or underscores.";
-  }
+export function validateEmail(email: string) {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return "Email is required.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return "Enter a valid email address.";
   return null;
 }
 
-export function usernameToEmail(username: string) {
-  return `${normalizeUsername(username)}@propertyscout.local`;
+export function makeProfileHandle(email: string, userId: string) {
+  const localPart = normalizeEmail(email).split("@")[0] || "scout";
+  const safeLocalPart = localPart.replace(/[^a-z0-9._-]/g, "-").replace(/-+/g, "-");
+  return `${safeLocalPart}-${userId.slice(0, 8)}`;
 }

@@ -3,28 +3,32 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, KeyRound } from "lucide-react";
+import { ArrowRight, Chrome, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ContactSignature } from "@/components/contact-signature";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { normalizeUsername, usernameToEmail, validateUsername } from "@/lib/auth";
+import { normalizeEmail, validateEmail } from "@/lib/auth";
+import { ensureProfile } from "@/lib/profile";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const supabase = createClient();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    const usernameError = validateUsername(username);
-    if (usernameError) return setError(usernameError);
+    setMessage("");
+    const emailError = validateEmail(email);
+    if (emailError) return setError(emailError);
     if (!password) return setError("Password is required.");
     if (!isSupabaseConfigured()) {
       return setError(
@@ -33,42 +37,62 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
 
     setLoading(true);
-    const cleanUsername = normalizeUsername(username);
+    const cleanEmail = normalizeEmail(email);
     try {
       if (mode === "signup") {
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: usernameToEmail(cleanUsername),
+          email: cleanEmail,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/setup`,
+          },
         });
         if (signUpError) throw signUpError;
         if (!data.user) throw new Error("Could not create account.");
 
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          username: cleanUsername,
-        });
-        if (profileError) throw profileError;
-        router.replace("/setup");
+        if (data.session) {
+          await ensureProfile(supabase, data.user);
+          router.replace("/setup");
+        } else {
+          setMessage("Check your email to confirm your account, then log in.");
+        }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: usernameToEmail(cleanUsername),
+        const { data: loginData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
           password,
         });
         if (signInError) throw signInError;
+        if (!loginData.user) throw new Error("Could not sign in.");
 
-        const { data: userData } = await supabase.auth.getUser();
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("setup_complete")
-          .eq("id", userData.user?.id)
-          .single();
-        if (profileError) throw profileError;
+        const profile = await ensureProfile(supabase, loginData.user);
         router.replace(profile?.setup_complete ? "/dashboard" : "/setup");
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function signInWithGoogle() {
+    setError("");
+    setMessage("");
+    if (!isSupabaseConfigured()) {
+      return setError(
+        "Supabase is not configured yet. Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then restart npm run dev.",
+      );
+    }
+
+    setOauthLoading(true);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/setup`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setOauthLoading(false);
     }
   }
 
@@ -86,15 +110,33 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             </p>
           </div>
           <Card className="p-6">
+            <div className="grid gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={signInWithGoogle}
+                disabled={oauthLoading}
+                className="w-full"
+              >
+                <Chrome className="h-4 w-4" />
+                {oauthLoading ? "Opening Google..." : "Continue with Google"}
+              </Button>
+            </div>
+            <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="h-px flex-1 bg-white/10" />
+              or
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
             <form onSubmit={submit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value.toLowerCase())}
-                  autoComplete="username"
-                  placeholder="fahad"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="email"
+                  placeholder="you@example.com"
                 />
               </div>
               <div className="space-y-2">
@@ -113,6 +155,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
+            {message ? <p className="mt-4 rounded-md border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-100">{message}</p> : null}
             <p className="mt-5 text-center text-sm text-muted-foreground">
               {mode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
               <Link className="font-medium text-emerald-200 hover:text-emerald-100" href={mode === "signup" ? "/login" : "/signup"}>

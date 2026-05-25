@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingState } from "@/components/loading-state";
+import { ensureProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 
 export default function HomePage() {
@@ -15,11 +16,7 @@ export default function HomePage() {
         router.replace("/login");
         return;
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("setup_complete")
-        .eq("id", data.user.id)
-        .single();
+      const profile = await ensureProfile(supabase, data.user);
       router.replace(profile?.setup_complete ? "/dashboard" : "/setup");
     });
   }, [router]);

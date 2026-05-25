@@ -6,7 +6,8 @@ Property Scout is built for individual buyers and investors who want a clean com
 
 ## Highlights
 
-- Username/password auth backed by Supabase Auth
+- Email/password auth backed by Supabase Auth
+- Optional Google sign-in through Supabase OAuth providers
 - Personal finance setup for income, debt, cash on hand, and default house assumptions
 - Property dashboard with status badges for DTI, cash shortfall, and missing numbers
 - Detailed property notebook with large, comfortable general notes and tour notes
@@ -40,7 +41,10 @@ Create a Supabase project, then run the SQL in:
 supabase/schema.sql
 ```
 
-In Supabase Auth settings, disable email confirmation for local testing.
+In Supabase Auth settings, configure email confirmation based on the environment:
+
+- Local testing: either keep confirmation off, or add `http://localhost:3000/**` to redirect URLs.
+- Deployed app: turn confirmation on and add your Vercel URL to the allowed redirect URLs.
 
 Create `.env.local`:
 
@@ -65,8 +69,9 @@ http://localhost:3000
 
 ## Test Flow
 
-1. Sign up with a username and password.
-2. Complete the profile setup.
+1. Sign up with an email and password.
+2. Confirm the email if confirmation is enabled.
+3. Log in and complete the profile setup.
 3. Add a property.
 4. Edit mortgage assumptions.
 5. Save general notes and tour notes.
@@ -85,12 +90,24 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-sb-publishable-key
 
 4. Deploy.
 
-## Auth Note
+## Supabase Auth Setup
 
-The UI asks for username and password. Internally, usernames are converted to synthetic Supabase emails like:
+For production, set these in Supabase:
 
 ```text
-username@propertyscout.local
+Authentication -> URL Configuration
+Site URL: https://your-vercel-app.vercel.app
+Redirect URLs:
+https://your-vercel-app.vercel.app/**
+http://localhost:3000/**
 ```
 
-Users never need to enter or manage an email address.
+Email/password works out of the box once Supabase Auth is enabled. To use the Google button, enable the provider in:
+
+```text
+Authentication -> Providers
+```
+
+Google requires a Google OAuth web client. If the provider is not configured yet, Supabase will return a provider configuration error when that button is clicked.
+
+The app creates the `profiles` row automatically after the first confirmed login or OAuth callback.

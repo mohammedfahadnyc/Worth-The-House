@@ -10,6 +10,7 @@ import { ProfileSummary } from "@/components/profile-summary";
 import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { ensureProfile } from "@/lib/profile";
 import type { Profile, Property } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
@@ -25,7 +26,7 @@ export default function DashboardPage() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return router.replace("/login");
 
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", auth.user.id).single();
+      const profileData = await ensureProfile(supabase, auth.user);
       if (!profileData?.setup_complete) return router.replace("/setup");
 
       const { data: propertyData } = await supabase

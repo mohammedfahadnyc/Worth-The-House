@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ensureProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 
@@ -25,7 +26,7 @@ export default function NewPropertyPage() {
     async function load() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return router.replace("/login");
-      const { data } = await supabase.from("profiles").select("*").eq("id", auth.user.id).single();
+      const data = await ensureProfile(supabase, auth.user);
       if (!data?.setup_complete) return router.replace("/setup");
       setProfile(data as Profile);
     }
