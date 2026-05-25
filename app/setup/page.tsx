@@ -83,10 +83,10 @@ export default function SetupPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-10 sm:px-6">
       <div className="mb-8">
-        <p className="text-sm font-medium text-emerald-200">Setup</p>
+        <p className="text-sm font-medium text-emerald-200">{draft ? "Assumptions" : "Setup"}</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl">Your buying power</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Set your baseline finances once, then reuse them across every property you analyze.
+          Set or update your baseline finances, then reuse them across every property you analyze.
         </p>
       </div>
 
@@ -144,7 +144,7 @@ export default function SetupPage() {
 
         {error ? <p className="rounded-md border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-200">{error}</p> : null}
         <Button onClick={save} disabled={saving} size="lg" className="w-full sm:w-fit">
-          {saving ? "Saving..." : "Save and continue"}
+          {saving ? "Saving..." : "Save assumptions"}
         </Button>
       </div>
     </main>

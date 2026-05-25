@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Home, LogOut, Plus } from "lucide-react";
+import { Home, LogOut, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactSignature } from "@/components/contact-signature";
 import { createClient } from "@/lib/supabase/client";
@@ -41,6 +41,11 @@ export function AppShell({
               <Link href="/properties/new">
                 <Plus className="h-4 w-4" />
                 Add House
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon" title="Edit assumptions" aria-label="Edit assumptions">
+              <Link href="/setup">
+                <Settings className="h-4 w-4" />
               </Link>
             </Button>
             <Button variant="ghost" size="icon" onClick={logout} title="Log out" aria-label="Log out">

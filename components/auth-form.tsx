@@ -87,7 +87,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/setup`,
+        redirectTo: `${window.location.origin}/dashboard`,
       },
     });
     if (oauthError) {
