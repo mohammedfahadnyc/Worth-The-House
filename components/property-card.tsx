@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { calculateMortgage, getPropertyStatus, mortgageInputsFrom } from "@/lib/calculations";
@@ -23,6 +23,12 @@ export function PropertyCard({ property, profile }: { property: Property; profil
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
           <StatusBadge status={status} />
+          {property.listing_url ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-blue-400/25 bg-blue-400/10 px-2.5 py-1 text-xs font-medium text-blue-200">
+              <ExternalLink className="h-3 w-3" />
+              Listing saved
+            </span>
+          ) : null}
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
           <div>

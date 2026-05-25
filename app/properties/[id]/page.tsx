@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { LoadingState } from "@/components/loading-state";
 import { MetricCard } from "@/components/metric-card";
@@ -20,6 +20,7 @@ import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/profile";
 import type { Profile, Property } from "@/lib/types";
+import { normalizeExternalUrl } from "@/lib/urls";
 
 const generalPlaceholder =
   "Bedrooms, bathrooms, zip code, parking, basement, neighborhood, repairs, first impression, deal concerns, anything you want to remember...";
@@ -30,7 +31,7 @@ export default function PropertyDetailPage() {
   const supabase = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
-  const [overview, setOverview] = useState({ address: "", general_notes: "" });
+  const [overview, setOverview] = useState({ address: "", listing_url: "", general_notes: "" });
   const [loading, setLoading] = useState(true);
   const [savingOverview, setSavingOverview] = useState(false);
   const [overviewMessage, setOverviewMessage] = useState("");
@@ -56,6 +57,7 @@ export default function PropertyDetailPage() {
         setProperty(propertyData as Property);
         setOverview({
           address: propertyData.address,
+          listing_url: propertyData.listing_url ?? "",
           general_notes: propertyData.general_notes ?? "",
         });
       }
@@ -79,14 +81,23 @@ export default function PropertyDetailPage() {
     setOverviewMessage("");
     const { error: saveError } = await supabase
       .from("properties")
-      .update({ address: overview.address.trim(), general_notes: overview.general_notes })
+      .update({
+        address: overview.address.trim(),
+        listing_url: normalizeExternalUrl(overview.listing_url),
+        general_notes: overview.general_notes,
+      })
       .eq("id", property.id);
     setSavingOverview(false);
     if (saveError) {
       setOverviewMessage(saveError.message);
       return;
     }
-    setProperty({ ...property, address: overview.address.trim(), general_notes: overview.general_notes });
+    setProperty({
+      ...property,
+      address: overview.address.trim(),
+      listing_url: normalizeExternalUrl(overview.listing_url),
+      general_notes: overview.general_notes,
+    });
     setOverviewMessage("Saved");
   }
 
@@ -146,7 +157,17 @@ export default function PropertyDetailPage() {
             <h1 className="truncate text-3xl font-semibold tracking-normal sm:text-4xl">{property.address}</h1>
             <p className="mt-3 text-sm text-muted-foreground">Saved property notebook and deal math.</p>
           </div>
-          <StatusBadge status={status} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {property.listing_url ? (
+              <Button asChild variant="outline" className="w-full sm:w-auto">
+                <a href={property.listing_url} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  View listing
+                </a>
+              </Button>
+            ) : null}
+            <StatusBadge status={status} />
+          </div>
         </div>
       </div>
 
@@ -161,6 +182,16 @@ export default function PropertyDetailPage() {
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Input id="address" value={overview.address} onChange={(event) => setOverview({ ...overview, address: event.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="listing-url">Listing link</Label>
+                <Input
+                  id="listing-url"
+                  type="url"
+                  value={overview.listing_url}
+                  onChange={(event) => setOverview({ ...overview, listing_url: event.target.value })}
+                  placeholder="https://www.zillow.com/homedetails/..."
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="general-notes">General Notes</Label>

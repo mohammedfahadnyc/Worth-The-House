@@ -12,12 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { ensureProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
+import { normalizeExternalUrl } from "@/lib/urls";
 
 export default function NewPropertyPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [address, setAddress] = useState("");
+  const [listingUrl, setListingUrl] = useState("");
   const [generalNotes, setGeneralNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -74,6 +76,7 @@ export default function NewPropertyPage() {
       .insert({
         user_id: profile.id,
         address: address.trim(),
+        listing_url: normalizeExternalUrl(listingUrl),
         general_notes: generalNotes,
         ...defaults,
       })
@@ -102,6 +105,16 @@ export default function NewPropertyPage() {
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="123 Market Street, Pittsburgh, PA" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="listing-url">Listing link</Label>
+              <Input
+                id="listing-url"
+                type="url"
+                value={listingUrl}
+                onChange={(event) => setListingUrl(event.target.value)}
+                placeholder="https://www.zillow.com/homedetails/..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">General notes</Label>

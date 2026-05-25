@@ -25,6 +25,7 @@ export type Property = {
   id: string;
   user_id: string;
   address: string;
+  listing_url: string;
   general_notes: string;
   tour_notes: string;
   purchase_price: number;

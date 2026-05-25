@@ -27,6 +27,7 @@ create table if not exists public.properties (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   address text not null,
+  listing_url text default '',
   general_notes text default '',
   tour_notes text default '',
   purchase_price numeric default 0,
@@ -43,6 +44,9 @@ create table if not exists public.properties (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.properties
+add column if not exists listing_url text default '';
 
 create index if not exists idx_properties_user_id on public.properties(user_id);
 create index if not exists idx_properties_created_at on public.properties(created_at desc);
