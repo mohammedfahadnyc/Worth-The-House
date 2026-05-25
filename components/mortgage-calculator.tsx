@@ -90,8 +90,8 @@ export function MortgageCalculator({
                 id="loan-term"
                 type="number"
                 min="1"
-                value={draft.loan_term_years}
-                onChange={(event) => update("loan_term_years", Number(event.target.value))}
+                value={draft.loan_term_years > 0 ? draft.loan_term_years : ""}
+                onChange={(event) => update("loan_term_years", event.target.value === "" ? 0 : Number(event.target.value))}
               />
             </div>
             <MoneyInput label="Annual property taxes" value={draft.annual_taxes} onChange={(value) => update("annual_taxes", value)} />

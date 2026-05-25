@@ -134,7 +134,7 @@ export default function SetupPage() {
               <MoneyInput label="Default monthly rental income" value={draft.default_monthly_rental_income} onChange={(value) => update("default_monthly_rental_income", value)} />
               <div className="space-y-2">
                 <Label htmlFor="default-term">Default loan term years</Label>
-                <Input id="default-term" type="number" min="1" value={draft.default_loan_term_years} onChange={(event) => update("default_loan_term_years", Number(event.target.value))} />
+                <Input id="default-term" type="number" min="1" value={draft.default_loan_term_years > 0 ? draft.default_loan_term_years : ""} onChange={(event) => update("default_loan_term_years", event.target.value === "" ? 0 : Number(event.target.value))} />
               </div>
               <PercentageInput label="Default closing cost %" value={draft.default_closing_cost_percent} onChange={(value) => update("default_closing_cost_percent", value)} />
               <MoneyInput label="Default repair reserve" value={draft.default_repair_reserve} onChange={(value) => update("default_repair_reserve", value)} />

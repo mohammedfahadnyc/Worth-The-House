@@ -11,6 +11,8 @@ type PercentageInputProps = {
 };
 
 export function PercentageInput({ label, value, onChange, id }: PercentageInputProps) {
+  const displayValue = Number.isFinite(value) && value !== 0 ? value : "";
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -20,8 +22,8 @@ export function PercentageInput({ label, value, onChange, id }: PercentageInputP
         inputMode="decimal"
         min="0"
         step="0.1"
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(event) => onChange(Number(event.target.value))}
+        value={displayValue}
+        onChange={(event) => onChange(event.target.value === "" ? 0 : Number(event.target.value))}
       />
     </div>
   );
