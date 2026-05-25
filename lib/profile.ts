@@ -17,7 +17,7 @@ export async function ensureProfile(supabase: SupabaseClient, user: User) {
   if (selectError) throw selectError;
   if (existing) return existing as Profile;
 
-  const email = user.email ?? `${user.id}@propertyscout.local`;
+  const email = user.email ?? `${user.id}@worththehouse.local`;
   const { data: created, error: insertError } = await supabase
     .from("profiles")
     .insert({

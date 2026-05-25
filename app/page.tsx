@@ -21,5 +21,5 @@ export default function HomePage() {
     });
   }, [router]);
 
-  return <LoadingState label="Opening Property Scout..." />;
+  return <LoadingState label="Opening WorthTheHouse..." />;
 }

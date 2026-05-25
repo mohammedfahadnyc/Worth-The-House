@@ -32,7 +32,7 @@ export function AppShell({
               <Home className="h-5 w-5" />
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">Property Scout</span>
+              <span className="block truncate text-sm font-semibold">WorthTheHouse</span>
               <span className="block truncate text-xs text-muted-foreground">@{profile.username}</span>
             </span>
           </Link>

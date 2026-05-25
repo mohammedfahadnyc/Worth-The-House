@@ -104,7 +104,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-md border border-emerald-400/25 bg-emerald-400/10 text-emerald-200">
               <KeyRound className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-semibold tracking-normal">Property Scout</h1>
+            <h1 className="text-3xl font-semibold tracking-normal">WorthTheHouse</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               Track properties. Run the numbers. Remember every detail.
             </p>

@@ -1,8 +1,8 @@
-# Property Scout
+# WorthTheHouse
 
 A polished personal real estate acquisition notebook for tracking properties, writing tour notes, and running mortgage, cash-to-close, and DTI scenarios before making an offer.
 
-Property Scout is built for individual buyers and investors who want a clean command center for evaluating houses without spreadsheets, clutter, or landlord-management bloat.
+WorthTheHouse is built for individual buyers and investors who want a clean command center for evaluating houses without spreadsheets, clutter, or landlord-management bloat.
 
 ## Highlights
 
@@ -79,7 +79,7 @@ http://localhost:3000
 
 ## Deployment
 
-1. Push this repo to GitHub as `property-scout`.
+1. Push this repo to GitHub.
 2. Import the repo into Vercel.
 3. Add these environment variables in Vercel:
 

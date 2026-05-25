@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Property Scout",
+  title: "WorthTheHouse",
   description: "A personal real estate acquisition notebook and mortgage simulator.",
 };
 
