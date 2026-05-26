@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Chrome, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +23,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const returnTo = safeReturnTo(searchParams.get("returnTo"));
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,7 +67,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         if (!loginData.user) throw new Error("Could not sign in.");
 
         const profile = await ensureProfile(supabase, loginData.user);
-        router.replace(profile?.setup_complete ? "/dashboard" : "/setup");
+        router.replace(profile?.setup_complete ? returnTo ?? "/dashboard" : "/setup");
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
@@ -87,7 +89,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${returnTo ?? "/dashboard"}`,
       },
     });
     if (oauthError) {
@@ -158,7 +160,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             {message ? <p className="mt-4 rounded-md border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-100">{message}</p> : null}
             <p className="mt-5 text-center text-sm text-muted-foreground">
               {mode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
-              <Link className="font-medium text-emerald-200 hover:text-emerald-100" href={mode === "signup" ? "/login" : "/signup"}>
+              <Link
+                className="font-medium text-emerald-200 hover:text-emerald-100"
+                href={`${mode === "signup" ? "/login" : "/signup"}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`}
+              >
                 {mode === "signup" ? "Log in" : "Sign up"}
               </Link>
             </p>
@@ -168,4 +173,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <ContactSignature />
     </div>
   );
+}
+
+function safeReturnTo(value: string | null) {
+  if (!value) return null;
+  if (!value.startsWith("/") || value.startsWith("//")) return null;
+  if (value.startsWith("/login") || value.startsWith("/signup")) return null;
+  return value;
 }

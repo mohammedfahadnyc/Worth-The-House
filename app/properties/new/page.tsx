@@ -55,6 +55,18 @@ export default function NewPropertyPage() {
     }
     setSaving(true);
     setError("");
+    const { data: existing } = await supabase
+      .from("properties")
+      .select("id, address")
+      .eq("user_id", profile.id);
+    const duplicate = (existing ?? []).find(
+      (property) => property.address.trim().toLowerCase().replace(/\s+/g, " ") === address.trim().toLowerCase().replace(/\s+/g, " "),
+    );
+    if (duplicate) {
+      setSaving(false);
+      setError("This house already exists in your dashboard.");
+      return;
+    }
     const defaults = profile.use_default_house_data
       ? {
           purchase_price: profile.default_purchase_price,

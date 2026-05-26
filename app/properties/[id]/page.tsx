@@ -9,7 +9,10 @@ import { LoadingState } from "@/components/loading-state";
 import { MetricCard } from "@/components/metric-card";
 import { MortgageCalculator } from "@/components/mortgage-calculator";
 import { NotesSection } from "@/components/notes-section";
+import { PropertyStageBadge } from "@/components/property-stage-badge";
+import { PropertyStageSelect } from "@/components/property-stage-select";
 import { StatusBadge } from "@/components/status-badge";
+import { SharePropertyDialog } from "@/components/share-property-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +22,7 @@ import { calculateMortgage, getPropertyStatus, mortgageInputsFrom, TARGET_DTI } 
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/profile";
-import type { Profile, Property } from "@/lib/types";
+import type { Profile, Property, PropertyStage } from "@/lib/types";
 import { normalizeExternalUrl } from "@/lib/urls";
 
 const generalPlaceholder =
@@ -31,7 +34,12 @@ export default function PropertyDetailPage() {
   const supabase = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
-  const [overview, setOverview] = useState({ address: "", listing_url: "", general_notes: "" });
+  const [overview, setOverview] = useState<{ address: string; listing_url: string; general_notes: string; stage: PropertyStage }>({
+    address: "",
+    listing_url: "",
+    general_notes: "",
+    stage: "just_interested",
+  });
   const [loading, setLoading] = useState(true);
   const [savingOverview, setSavingOverview] = useState(false);
   const [overviewMessage, setOverviewMessage] = useState("");
@@ -59,6 +67,7 @@ export default function PropertyDetailPage() {
           address: propertyData.address,
           listing_url: propertyData.listing_url ?? "",
           general_notes: propertyData.general_notes ?? "",
+          stage: propertyData.stage ?? "just_interested",
         });
       }
       setLoading(false);
@@ -85,6 +94,7 @@ export default function PropertyDetailPage() {
         address: overview.address.trim(),
         listing_url: normalizeExternalUrl(overview.listing_url),
         general_notes: overview.general_notes,
+        stage: overview.stage,
       })
       .eq("id", property.id);
     setSavingOverview(false);
@@ -97,8 +107,25 @@ export default function PropertyDetailPage() {
       address: overview.address.trim(),
       listing_url: normalizeExternalUrl(overview.listing_url),
       general_notes: overview.general_notes,
+      stage: overview.stage,
     });
     setOverviewMessage("Saved");
+  }
+
+  async function saveStage(stage: PropertyStage) {
+    if (!property) return;
+    const previous = property;
+    setOverview((current) => ({ ...current, stage }));
+    setProperty({ ...property, stage });
+    setOverviewMessage("");
+    const { error: saveError } = await supabase.from("properties").update({ stage }).eq("id", property.id);
+    if (saveError) {
+      setProperty(previous);
+      setOverview((current) => ({ ...current, stage: previous.stage ?? "just_interested" }));
+      setOverviewMessage(saveError.message);
+      return;
+    }
+    setOverviewMessage("Stage saved");
   }
 
   async function saveMortgage(values: Partial<Property>) {
@@ -158,6 +185,8 @@ export default function PropertyDetailPage() {
             <p className="mt-3 text-sm text-muted-foreground">Saved property notebook and deal math.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SharePropertyDialog propertyId={property.id} />
+            <PropertyStageBadge stage={property.stage} />
             {property.listing_url ? (
               <Button asChild variant="outline" className="w-full sm:w-auto">
                 <a href={property.listing_url} target="_blank" rel="noreferrer">
@@ -192,6 +221,10 @@ export default function PropertyDetailPage() {
                   onChange={(event) => setOverview({ ...overview, listing_url: event.target.value })}
                   placeholder="https://www.zillow.com/homedetails/..."
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stage">Deal stage</Label>
+                <PropertyStageSelect value={overview.stage} onChange={saveStage} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="general-notes">General Notes</Label>

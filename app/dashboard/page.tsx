@@ -9,10 +9,11 @@ import { LoadingState } from "@/components/loading-state";
 import { ProfileSummary } from "@/components/profile-summary";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyList } from "@/components/property-list";
+import { PropertyStageSelect } from "@/components/property-stage-select";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/profile";
-import type { Profile, Property } from "@/lib/types";
+import type { Profile, Property, PropertyStage } from "@/lib/types";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function DashboardPage() {
         .from("properties")
         .select("*")
         .eq("user_id", auth.user.id)
+        .eq("dashboard_visible", true)
         .order("created_at", { ascending: false });
 
       setProfile(profileData as Profile);
@@ -45,6 +48,21 @@ export default function DashboardPage() {
   }, [router, supabase]);
 
   if (loading || !profile) return <LoadingState label="Loading dashboard..." />;
+
+  async function updateStage(property: Property, stage: PropertyStage) {
+    setProperties((current) =>
+      current.map((item) => (item.id === property.id ? { ...item, stage } : item)),
+    );
+    const { error } = await supabase.from("properties").update({ stage }).eq("id", property.id);
+    if (error) {
+      setMessage(`Could not update deal stage: ${error.message}`);
+      setProperties((current) =>
+        current.map((item) => (item.id === property.id ? property : item)),
+      );
+      return;
+    }
+    setMessage("Deal stage updated.");
+  }
 
   return (
     <AppShell profile={profile}>
@@ -64,6 +82,7 @@ export default function DashboardPage() {
       </section>
 
       <ProfileSummary profile={profile} />
+      {message ? <p className="mt-6 rounded-md border border-white/10 bg-white/[0.03] p-3 text-sm text-muted-foreground">{message}</p> : null}
 
       <section className="mt-8">
         {properties.length === 0 ? (
@@ -82,10 +101,17 @@ export default function DashboardPage() {
             properties={properties}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onStageChange={updateStage}
             renderCards={(visibleProperties) => (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {visibleProperties.map((property) => (
-                  <PropertyCard key={property.id} property={property} profile={profile} />
+                  <div key={property.id} className="space-y-2">
+                    <PropertyCard property={property} profile={profile} />
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="text-xs text-muted-foreground">Deal stage</span>
+                      <PropertyStageSelect value={property.stage} onChange={(stage) => updateStage(property, stage)} />
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

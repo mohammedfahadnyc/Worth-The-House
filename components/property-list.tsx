@@ -4,11 +4,13 @@ import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, ExternalLink, LayoutGrid, List } from "lucide-react";
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { PropertyStageBadge } from "@/components/property-stage-badge";
+import { PropertyStageSelect } from "@/components/property-stage-select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { calculateMortgage, getPropertyStatus, mortgageInputsFrom } from "@/lib/calculations";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
-import type { Profile, Property } from "@/lib/types";
+import type { Profile, Property, PropertyStage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type PropertyListProps = {
@@ -17,6 +19,9 @@ type PropertyListProps = {
   viewMode: "cards" | "list";
   onViewModeChange: (mode: "cards" | "list") => void;
   renderCards: (visibleProperties: Property[]) => React.ReactNode;
+  getPropertyHref?: (property: Property) => string;
+  onStageChange?: (property: Property, stage: PropertyStage) => void;
+  canChangeStage?: (property: Property) => boolean;
 };
 
 export function PropertyList({
@@ -25,6 +30,9 @@ export function PropertyList({
   viewMode,
   onViewModeChange,
   renderCards,
+  getPropertyHref,
+  onStageChange,
+  canChangeStage,
 }: PropertyListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(10);
@@ -106,7 +114,10 @@ export function PropertyList({
                       <p className="mt-1 truncate text-sm text-muted-foreground">{preview}</p>
                     </div>
                     <div className="flex md:block">
-                      <StatusBadge status={status} />
+                      <div className="flex flex-wrap gap-2">
+                        <PropertyStageBadge stage={property.stage} />
+                        <StatusBadge status={status} />
+                      </div>
                     </div>
                     <Recap label="Monthly" value={formatCurrency(results.total_monthly_payment)} />
                     <Recap label="DTI" value={formatPercent(results.dti_percent)} />
@@ -133,8 +144,15 @@ export function PropertyList({
                           <Recap label="Loan" value={formatCurrency(results.loan_amount)} />
                         </div>
                         <Button asChild className="w-full">
-                          <Link href={`/properties/${property.id}`}>Open property</Link>
+                          <Link href={getPropertyHref?.(property) ?? `/properties/${property.id}`}>Open property</Link>
                         </Button>
+                        {onStageChange ? (
+                          <PropertyStageSelect
+                            value={property.stage}
+                            disabled={canChangeStage ? !canChangeStage(property) : false}
+                            onChange={(stage) => onStageChange(property, stage)}
+                          />
+                        ) : null}
                         {property.listing_url ? (
                           <Button asChild variant="outline" className="w-full">
                             <a href={property.listing_url} target="_blank" rel="noreferrer">

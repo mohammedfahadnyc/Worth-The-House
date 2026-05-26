@@ -24,6 +24,8 @@ export type Profile = {
 export type Property = {
   id: string;
   user_id: string;
+  dashboard_visible?: boolean;
+  stage: PropertyStage;
   address: string;
   listing_url: string;
   general_notes: string;
@@ -97,3 +99,75 @@ export type PropertyStatus =
   | "DTI too high"
   | "Cash short"
   | "Looks good";
+
+export type PropertyStage =
+  | "just_interested"
+  | "offer_placed"
+  | "toured"
+  | "under_contract"
+  | "fell_through";
+
+export type DealRoom = {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DealRoomMember = {
+  id: string;
+  deal_room_id: string;
+  user_id: string;
+  role: "collaborator";
+  created_at: string;
+};
+
+export type DealRoomProperty = {
+  id: string;
+  deal_room_id: string;
+  property_id: string;
+  added_by: string | null;
+  created_at: string;
+};
+
+export type ShowcaseAccessMode = "view_only" | "can_comment";
+
+export type Showcase = {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string;
+  public_token: string;
+  access_mode: ShowcaseAccessMode;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ShowcaseProperty = {
+  id: string;
+  showcase_id: string;
+  property_id: string;
+  added_by: string | null;
+  created_at: string;
+};
+
+export type PublicPropertyComment = {
+  id: string;
+  showcase_id: string;
+  property_id: string;
+  display_name: string;
+  comment: string;
+  created_at: string;
+};
+
+export type DealRoomPropertyComment = {
+  id: string;
+  deal_room_id: string;
+  property_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+};

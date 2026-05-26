@@ -7,6 +7,10 @@ import type { Profile } from "@/lib/types";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
+function supabaseMessage(error: { message?: string; details?: string; hint?: string }) {
+  return [error.message, error.details, error.hint].filter(Boolean).join(" ");
+}
+
 export async function ensureProfile(supabase: SupabaseClient, user: User) {
   const { data: existing, error: selectError } = await supabase
     .from("profiles")
@@ -14,7 +18,7 @@ export async function ensureProfile(supabase: SupabaseClient, user: User) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (selectError) throw selectError;
+  if (selectError) throw new Error(supabaseMessage(selectError) || "Could not load profile.");
   if (existing) return existing as Profile;
 
   const email = user.email ?? `${user.id}@worththehouse.local`;
@@ -27,6 +31,6 @@ export async function ensureProfile(supabase: SupabaseClient, user: User) {
     .select("*")
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) throw new Error(supabaseMessage(insertError) || "Could not create profile.");
   return created as Profile;
 }

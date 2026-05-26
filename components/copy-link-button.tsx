@@ -1,0 +1,22 @@
+"use client";
+
+import { Copy } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+export function CopyLinkButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }
+
+  return (
+    <Button type="button" variant="outline" onClick={copy}>
+      <Copy className="h-4 w-4" />
+      {copied ? "Copied" : "Copy link"}
+    </Button>
+  );
+}

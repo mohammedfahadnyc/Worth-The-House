@@ -1,18 +1,27 @@
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PropertyStageBadge } from "@/components/property-stage-badge";
 import { StatusBadge } from "@/components/status-badge";
 import { calculateMortgage, getPropertyStatus, mortgageInputsFrom } from "@/lib/calculations";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import type { Profile, Property } from "@/lib/types";
 
-export function PropertyCard({ property, profile }: { property: Property; profile: Profile }) {
+export function PropertyCard({
+  property,
+  profile,
+  href,
+}: {
+  property: Property;
+  profile: Profile;
+  href?: string;
+}) {
   const results = calculateMortgage(mortgageInputsFrom(profile, property));
   const status = getPropertyStatus(results);
   const preview = property.general_notes?.trim().split("\n")[0] || "No notes yet.";
 
   return (
-    <Link href={`/properties/${property.id}`} className="group block">
+    <Link href={href ?? `/properties/${property.id}`} className="group block">
       <Card className="h-full p-5 transition hover:border-emerald-400/30 hover:bg-card">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -22,6 +31,7 @@ export function PropertyCard({ property, profile }: { property: Property; profil
           <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:text-emerald-200" />
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
+          <PropertyStageBadge stage={property.stage} />
           <StatusBadge status={status} />
           {property.listing_url ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-blue-400/25 bg-blue-400/10 px-2.5 py-1 text-xs font-medium text-blue-200">

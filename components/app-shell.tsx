@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Home, LogOut, Plus, Settings } from "lucide-react";
+import { Home, LogOut, Plus, Settings, Share2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactSignature } from "@/components/contact-signature";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +37,18 @@ export function AppShell({
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
+              <Link href="/deal-rooms">
+                <Users className="h-4 w-4" />
+                Deal Rooms
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
+              <Link href="/showcases">
+                <Share2 className="h-4 w-4" />
+                Showcases
+              </Link>
+            </Button>
             <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
               <Link href="/properties/new">
                 <Plus className="h-4 w-4" />
