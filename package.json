@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:parser": "node --experimental-strip-types --experimental-transform-types lib/listing-parser.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.0",
