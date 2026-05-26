@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
 import { ProfileSummary } from "@/components/profile-summary";
 import { PropertyCard } from "@/components/property-card";
+import { PropertyList } from "@/components/property-list";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/profile";
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const supabase = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,11 +77,19 @@ export default function DashboardPage() {
             }
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} profile={profile} />
-            ))}
-          </div>
+          <PropertyList
+            profile={profile}
+            properties={properties}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            renderCards={(visibleProperties) => (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {visibleProperties.map((property) => (
+                  <PropertyCard key={property.id} property={property} profile={profile} />
+                ))}
+              </div>
+            )}
+          />
         )}
       </section>
     </AppShell>
